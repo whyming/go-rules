@@ -145,7 +145,16 @@ func getValue(base reflect.Value, expr ast.Expr) (interface{}, error) {
 	case *ast.Ident:
 		return getValueByTag(base, t.Name)
 	case *ast.BasicLit:
-		return strconv.ParseFloat(t.Value, 64)
+		switch t.Kind {
+		case token.STRING:
+			return strings.Trim(t.Value, "\""), nil
+		case token.INT:
+			return strconv.ParseInt(t.Value, 10, 64)
+		case token.FLOAT:
+			return strconv.ParseFloat(t.Value, 64)
+		default:
+			return nullValue, errors.New("unsupport param")
+		}
 	case *ast.ParenExpr:
 		return getValue(base, t.X)
 	case *ast.SelectorExpr:
@@ -161,13 +170,29 @@ func getValue(base reflect.Value, expr ast.Expr) (interface{}, error) {
 		}
 		f, ok := idx.(float64)
 		if !ok {
-			return nullValue, errors.New("index must be int or float")
+			if i, ok := idx.(int64); ok {
+				f = float64(i)
+			} else {
+				return nullValue, errors.New("index must be int or float")
+			}
+
 		}
 		v, err := getValue(base, t.X)
 		if err != nil {
 			return nullValue, err
 		}
 		return getSliceValue(reflect.ValueOf(v), int(f))
+	case *ast.CallExpr:
+		if fexp, ok := t.Fun.(*ast.Ident); ok {
+			if strings.ToUpper(fexp.Name) == "IN" {
+				if len(t.Args) == 2 {
+					return isIn(base, t.Args[0], t.Args[1])
+				}
+				return nullValue, errors.New("function IN only support tow params")
+			}
+			return nullValue, errors.New("unsupport function: " + fexp.Name)
+		}
+		return nullValue, errors.New("unknow function")
 	default:
 		return nullValue, ErrUnsupportExpr
 	}
@@ -184,4 +209,54 @@ func operate(x, y interface{}, tk token.Token) (interface{}, error) {
 	default:
 		return nil, ErrUnsupportToken
 	}
+}
+
+func isIn(base reflect.Value, slice ast.Expr, key ast.Expr) (bool, error) {
+	sv, err := getValue(base, slice)
+	if err != nil {
+		return false, err
+	}
+
+	kv, err := getValue(base, key)
+	if err != nil {
+		return false, err
+	}
+	svv := reflect.ValueOf(sv)
+	if svv.Kind() != reflect.Slice && svv.Kind() != reflect.Array {
+		return false, errors.New("function IN first param must be slice or array")
+	}
+	if svv.Len() == 0 {
+		return false, nil
+	}
+	kvv := reflect.ValueOf(kv)
+
+	switch svv.Index(0).Kind() {
+	case reflect.String:
+		for i := 0; i < svv.Len(); i++ {
+			if svv.Index(i).CanInterface() {
+				if s, ok := svv.Index(i).Interface().(string); ok {
+					if s == kvv.String() {
+						return true, nil
+					}
+				}
+			}
+		}
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Float32, reflect.Float64:
+		for i := 0; i < svv.Len(); i++ {
+			if svv.Index(i).CanInterface() {
+				if s, ok := svv.Index(i).Interface().(float64); ok {
+					if s == kvv.Float() {
+						return true, nil
+					}
+				} else if s, ok := svv.Index(i).Interface().(int64); ok {
+					if float64(s) == kvv.Float() {
+						return true, nil
+					}
+				}
+			}
+		}
+	default:
+		return false, errors.New("function IN only support: string int float")
+	}
+	return false, nil
 }

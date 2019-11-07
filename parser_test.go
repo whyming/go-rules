@@ -63,9 +63,10 @@ func Test_getValue(t *testing.T) {
 		B int64 `json:"b"`
 	}
 	type Xy struct {
-		X   float64 `json:"x,omitempty"`
-		Abc Abc     `json:"abc,omitempty"`
-		Y   []int64 `json:"y,omitempty"`
+		X   float64  `json:"x,omitempty"`
+		Abc Abc      `json:"abc,omitempty"`
+		Y   []int64  `json:"y,omitempty"`
+		Z   []string `json:"z,omitempty"`
 	}
 	type More struct {
 		Xy Xy `json:"xy,omitempty"`
@@ -149,6 +150,36 @@ func Test_getValue(t *testing.T) {
 				}(),
 			},
 			want: float64(-3),
+		}, {
+			name: "function IN int64 yes",
+			args: args{
+				base: reflect.ValueOf(More{Xy: Xy{X: 10, Abc: Abc{A: 8, B: 20}, Y: []int64{3, 6, 9}}}),
+				expr: func() ast.Expr {
+					expr, _ := parser.ParseExpr(`in(xy.y,6.0)`)
+					return expr
+				}(),
+			},
+			want: true,
+		}, {
+			name: "function IN int64 no",
+			args: args{
+				base: reflect.ValueOf(More{Xy: Xy{X: 10, Abc: Abc{A: 8, B: 20}, Y: []int64{3, 6, 9}}}),
+				expr: func() ast.Expr {
+					expr, _ := parser.ParseExpr(`in(xy.y,5.0)`)
+					return expr
+				}(),
+			},
+			want: false,
+		}, {
+			name: "function IN string yes",
+			args: args{
+				base: reflect.ValueOf(More{Xy: Xy{X: 10, Abc: Abc{A: 8, B: 20}, Y: []int64{3, 6, 9}, Z: []string{"abc", "bcd"}}}),
+				expr: func() ast.Expr {
+					expr, _ := parser.ParseExpr(`in(xy.z,"abc")`)
+					return expr
+				}(),
+			},
+			want: true,
 		},
 	}
 	for _, tt := range tests {

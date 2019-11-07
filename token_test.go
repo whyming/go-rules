@@ -164,3 +164,35 @@ func Test_compare(t *testing.T) {
 		})
 	}
 }
+
+func Test_number(t *testing.T) {
+	type args struct {
+		x interface{}
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    float64
+		wantErr bool
+	}{
+		{
+			name: "int8",
+			args: args{
+				x: int8(12),
+			},
+			want: float64(12),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := number(tt.args.x)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("number() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("number() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
