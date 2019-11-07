@@ -352,20 +352,26 @@ func Test_getTagName(t *testing.T) {
 		{
 			name: "string",
 			args: args{
-				s: "x,omitempty",
+				s: `json:"x,omitempty"`,
 			},
 			want: "x",
 		}, {
 			name: "no dot",
 			args: args{
-				s: "abc",
+				s: `json:"abc"`,
+			},
+			want: "abc",
+		}, {
+			name: "mult",
+			args: args{
+				s: `kk:"adfa" json:"abc,omitempty"`,
 			},
 			want: "abc",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getTagName(tt.args.s); got != tt.want {
+			if got := getTagName(reflect.StructTag(tt.args.s)); got != tt.want {
 				t.Errorf("getTagName() = %v, want %v", got, tt.want)
 			}
 		})
@@ -432,3 +438,4 @@ func BenchmarkPreParse(b *testing.B) {
 // BenchmarkPreParse-4   	  100000	     22391 ns/op	    1296 B/op	      65 allocs/op
 // BenchmarkPreParse-4   	  100000	     13693 ns/op	     432 B/op	      38 allocs/op
 // BenchmarkPreParse-4   	  100000	     13846 ns/op	     384 B/op	      35 allocs/op
+// BenchmarkPreParse-4   	  100000	     11428 ns/op	     384 B/op	      35 allocs/op
