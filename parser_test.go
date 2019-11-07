@@ -337,3 +337,33 @@ func TestBool(t *testing.T) {
 		})
 	}
 }
+
+type xyz struct {
+	X []int64   `json:"x,omitempty"`
+	Y []float64 `json:"y,omitempty"`
+	Z []string  `json:"z,omitempty"`
+}
+type example struct {
+	A   int64   `json:"a,omitempty"`
+	B   float64 `json:"b,omitempty"`
+	C   string  `json:"c,omitempty"`
+	Xyz xyz     `json:"xyz,omitempty"`
+}
+
+func BenchmarkParse(b *testing.B) {
+	e := example{
+		A: 12,
+		B: 25,
+		C: "xxx",
+		Xyz: xyz{
+			X: []int64{3, 18, 274, 74, 1837},
+			Y: []float64{47, 284.13, 458.0},
+			Z: []string{"abc", "xyz", "xxx"},
+		},
+	}
+	for i := 0; i < b.N; i++ {
+		Bool(e, "a+b>xyz.x[1] && in(xyz.z,c) && xyz.y[2]<a*b")
+	}
+}
+
+// BenchmarkParse-4   	   20000	     69413 ns/op	    3320 B/op	     112 allocs/op
