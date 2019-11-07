@@ -229,9 +229,10 @@ func TestInt(t *testing.T) {
 			},
 			want: 60,
 		}, {
-			name: "null",
-			args: args{},
-			want: 0,
+			name:    "null",
+			args:    args{},
+			want:    0,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -277,9 +278,10 @@ func TestFloat(t *testing.T) {
 			},
 			want: 10,
 		}, {
-			name: "null",
-			args: args{},
-			want: 0,
+			name:    "null",
+			args:    args{},
+			want:    0,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -361,9 +363,38 @@ func BenchmarkParse(b *testing.B) {
 			Z: []string{"abc", "xyz", "xxx"},
 		},
 	}
+	var err error
 	for i := 0; i < b.N; i++ {
-		Bool(e, "a+b>xyz.x[1] && in(xyz.z,c) && xyz.y[2]<a*b")
+		_, err = Bool(e, "a+b>xyz.x[1] && in(xyz.z,c) && xyz.y[2]<a*b")
+	}
+	if err != nil {
+		b.Error(err)
 	}
 }
 
 // BenchmarkParse-4   	   20000	     69413 ns/op	    3320 B/op	     112 allocs/op
+// BenchmarkParse-4   	   20000	     61946 ns/op	    3336 B/op	     113 allocs/op
+func BenchmarkPreParse(b *testing.B) {
+	e := example{
+		A: 12,
+		B: 25,
+		C: "xxx",
+		Xyz: xyz{
+			X: []int64{3, 18, 274, 74, 1837},
+			Y: []float64{47, 284.13, 458.0},
+			Z: []string{"abc", "xyz", "xxx"},
+		},
+	}
+	r, err := NewRule("a+b>xyz.x[1] && in(xyz.z,c) && xyz.y[2]<a*b")
+	if err != nil {
+		b.Error(err)
+	}
+	for i := 0; i < b.N; i++ {
+		_, err = r.Bool(e)
+	}
+	if err != nil {
+		b.Error(err)
+	}
+}
+
+// BenchmarkPreParse-4   	  100000	     22391 ns/op	    1296 B/op	      65 allocs/op

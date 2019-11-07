@@ -3,7 +3,6 @@ package gorules
 import (
 	"errors"
 	"go/ast"
-	"go/parser"
 	"go/token"
 	"reflect"
 	"strconv"
@@ -12,6 +11,7 @@ import (
 
 // 错误定义
 var (
+	ErrRuleEmpty      = errors.New("rule is empty")
 	ErrTypeNotStruct  = errors.New("value must struct or struct pointer")
 	ErrNotFoundTag    = errors.New("not found tag")
 	ErrUnsupportToken = errors.New("unsupport token")
@@ -22,74 +22,29 @@ var (
 
 // Bool 规则rule结果的布尔值，rule的参数基于base的json tag
 func Bool(base interface{}, rule string) (bool, error) {
-	if len(rule) == 0 {
-		return true, nil
-	}
-	expr, err := parser.ParseExpr(rule)
+	r, err := NewRule(rule)
 	if err != nil {
 		return false, err
 	}
-	typ := reflect.ValueOf(base)
-	if typ.Kind() == reflect.Ptr {
-		typ = typ.Elem()
-	}
-	b, err := getValue(typ, expr)
-	if err != nil {
-		return false, err
-	}
-	if r, ok := b.(bool); ok {
-		return r, nil
-	}
-	return false, errors.New("result not bool")
+	return r.Bool(base)
 }
 
 // Int 规则rule的结果如果是数值型，转换为int64，否则报错
 func Int(base interface{}, rule string) (int64, error) {
-	if len(rule) == 0 {
-		return 0, nil
-	}
-	expr, err := parser.ParseExpr(rule)
+	r, err := NewRule(rule)
 	if err != nil {
 		return 0, err
 	}
-	typ := reflect.ValueOf(base)
-	if typ.Kind() == reflect.Ptr {
-		typ = typ.Elem()
-	}
-	b, err := getValue(typ, expr)
-	if err != nil {
-		return 0, err
-	}
-	if r, ok := b.(float64); ok {
-		return int64(r), nil
-	}
-	return 0, errors.New("result not int")
+	return r.Int(base)
 }
 
 // Float 返回规则rule结果，如果数值型返回float64，否则报错
 func Float(base interface{}, rule string) (float64, error) {
-	if len(rule) == 0 {
-		return 0, nil
-	}
-	expr, err := parser.ParseExpr(rule)
+	r, err := NewRule(rule)
 	if err != nil {
 		return 0, err
 	}
-	typ := reflect.ValueOf(base)
-	if typ.Kind() == reflect.Ptr {
-		typ = typ.Elem()
-	}
-	b, err := getValue(typ, expr)
-	if err != nil {
-		return 0, err
-	}
-	if r, ok := b.(float64); ok {
-		return r, nil
-	}
-	if r, ok := b.(int64); ok {
-		return float64(r), nil
-	}
-	return 0, errors.New("result not float")
+	return r.Float(base)
 }
 
 // 拆解rule，支持的计算类型+-*/， && ||，其他报错
