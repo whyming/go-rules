@@ -2,6 +2,7 @@ package gorules
 
 import (
 	"go/token"
+	"reflect"
 	"testing"
 )
 
@@ -69,7 +70,7 @@ func Test_mathOp(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := mathOp(tt.args.x, tt.args.y, tt.args.tk)
+			got, err := mathOp(reflect.ValueOf(tt.args.x), reflect.ValueOf(tt.args.y), tt.args.tk)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("mathOp() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -153,7 +154,7 @@ func Test_compare(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := compare(tt.args.x, tt.args.y, tt.args.tk)
+			got, err := compare(reflect.ValueOf(tt.args.x), reflect.ValueOf(tt.args.y), tt.args.tk)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("compare() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -185,7 +186,7 @@ func Test_number(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := number(tt.args.x)
+			got, err := number(reflect.ValueOf(tt.args.x))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("number() error = %v, wantErr %v", err, tt.wantErr)
 				return

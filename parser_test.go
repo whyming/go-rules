@@ -59,8 +59,9 @@ func Test_getValue(t *testing.T) {
 		expr ast.Expr
 	}
 	type Abc struct {
-		A int64 `json:"a"`
-		B int64 `json:"b"`
+		A int64  `json:"a,omitempty"`
+		B int64  `json:"b,omitempty"`
+		C string `json:"c,omitempty"`
 	}
 	type Xy struct {
 		X   float64  `json:"x,omitempty"`
@@ -116,6 +117,16 @@ func Test_getValue(t *testing.T) {
 				base: reflect.ValueOf(Abc{A: 10, B: 8}),
 				expr: func() ast.Expr {
 					expr, _ := parser.ParseExpr(`a>b && b<5 || a>8 &&b<9`)
+					return expr
+				}(),
+			},
+			want: true,
+		}, {
+			name: "string equal",
+			args: args{
+				base: reflect.ValueOf(Abc{C: "xxxxx"}),
+				expr: func() ast.Expr {
+					expr, _ := parser.ParseExpr(`c=="xxxxx"`)
 					return expr
 				}(),
 			},

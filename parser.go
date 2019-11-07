@@ -198,19 +198,6 @@ func getValue(base reflect.Value, expr ast.Expr) (interface{}, error) {
 	}
 }
 
-func operate(x, y interface{}, tk token.Token) (interface{}, error) {
-	switch tk {
-	case token.ADD, token.SUB, token.MUL, token.QUO:
-		return mathOp(x, y, tk)
-	case token.LSS, token.GTR, token.LEQ, token.GEQ, token.EQL, token.NEQ:
-		return compare(x, y, tk)
-	case token.LAND, token.LOR:
-		return boolOp(x, y, tk)
-	default:
-		return nil, ErrUnsupportToken
-	}
-}
-
 func isIn(base reflect.Value, slice ast.Expr, key ast.Expr) (bool, error) {
 	sv, err := getValue(base, slice)
 	if err != nil {
