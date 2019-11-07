@@ -431,3 +431,4 @@ func BenchmarkPreParse(b *testing.B) {
 
 // BenchmarkPreParse-4   	  100000	     22391 ns/op	    1296 B/op	      65 allocs/op
 // BenchmarkPreParse-4   	  100000	     13693 ns/op	     432 B/op	      38 allocs/op
+// BenchmarkPreParse-4   	  100000	     13846 ns/op	     384 B/op	      35 allocs/op

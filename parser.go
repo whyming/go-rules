@@ -189,26 +189,20 @@ func isIn(base reflect.Value, slice ast.Expr, key ast.Expr) (bool, error) {
 	switch svv.Index(0).Kind() {
 	case reflect.String:
 		for i := 0; i < svv.Len(); i++ {
-			if svv.Index(i).CanInterface() {
-				if s, ok := svv.Index(i).Interface().(string); ok {
-					if s == kvv.String() {
-						return true, nil
-					}
-				}
+			if svv.Index(i).String() == kvv.String() {
+				return true, nil
 			}
 		}
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Float32, reflect.Float64:
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		for i := 0; i < svv.Len(); i++ {
-			if svv.Index(i).CanInterface() {
-				if s, ok := svv.Index(i).Interface().(float64); ok {
-					if s == kvv.Float() {
-						return true, nil
-					}
-				} else if s, ok := svv.Index(i).Interface().(int64); ok {
-					if float64(s) == kvv.Float() {
-						return true, nil
-					}
-				}
+			if svv.Index(i).Int() == kvv.Int() {
+				return true, nil
+			}
+		}
+	case reflect.Float32, reflect.Float64:
+		for i := 0; i < svv.Len(); i++ {
+			if svv.Index(i).Float() == kvv.Float() {
+				return true, nil
 			}
 		}
 	default:
