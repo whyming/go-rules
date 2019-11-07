@@ -340,6 +340,38 @@ func TestBool(t *testing.T) {
 	}
 }
 
+func Test_getTagName(t *testing.T) {
+	type args struct {
+		s string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "string",
+			args: args{
+				s: "x,omitempty",
+			},
+			want: "x",
+		}, {
+			name: "no dot",
+			args: args{
+				s: "abc",
+			},
+			want: "abc",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := getTagName(tt.args.s); got != tt.want {
+				t.Errorf("getTagName() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 type xyz struct {
 	X []int64   `json:"x,omitempty"`
 	Y []float64 `json:"y,omitempty"`
@@ -398,3 +430,4 @@ func BenchmarkPreParse(b *testing.B) {
 }
 
 // BenchmarkPreParse-4   	  100000	     22391 ns/op	    1296 B/op	      65 allocs/op
+// BenchmarkPreParse-4   	  100000	     13693 ns/op	     432 B/op	      38 allocs/op

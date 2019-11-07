@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"unsafe"
 )
 
 // 错误定义
@@ -62,15 +63,28 @@ func getValueByTag(x reflect.Value, tag string) (interface{}, error) {
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		if json, ok := field.Tag.Lookup("json"); ok {
-			js := strings.Split(json, ",")
-			for _, j := range js {
-				if j == tag {
-					return x.Field(i).Interface(), nil
-				}
+			js := getTagName(json)
+
+			if js == tag {
+				return x.Field(i).Interface(), nil
 			}
+
 		}
 	}
 	return nil, ErrNotFoundTag
+}
+
+func getTagName(s string) string {
+	l := 0
+	for i := 0; i < len(s); i++ {
+		if s[i] == ',' {
+			break
+		}
+		l++
+	}
+	sh := *(*reflect.StringHeader)(unsafe.Pointer(&s))
+	sh.Len = l
+	return *(*string)(unsafe.Pointer(&sh))
 }
 
 func getSliceValue(x reflect.Value, idx int) (interface{}, error) {
