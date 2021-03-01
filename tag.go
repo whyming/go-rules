@@ -2,7 +2,6 @@ package gorules
 
 import (
 	"reflect"
-	"unsafe"
 )
 
 const (
@@ -11,47 +10,17 @@ const (
 	sNotFound
 )
 
+// getTagName if has rule use rule tag ,then json
 func getTagName(t reflect.StructTag) string {
-	s := *(*string)(unsafe.Pointer(&t))
+	name := t.Get("rule")
+	if name == "" {
+		name = t.Get("json")
+	}
 
-	var start, l, status int
-Tag:
-	for i := 0; i < len(s); i++ {
-		switch status {
-		case sStart:
-			if s[i] != ' ' {
-				var end int
-				for i+end < len(s) && s[i+end] != ':' {
-					end++
-				}
-				if s[i:i+end] == "json" {
-					status = sFound
-				} else {
-					status = sNotFound
-				}
-				i += end
-			}
-
-		case sFound:
-			if s[i] != '"' {
-				break Tag
-			}
-			start = i + 1
-			for start < len(s) && s[i] == ' ' {
-				start++
-			}
-
-			for start+l < len(s) && s[start+l] != ',' && s[start+l] != '"' {
-				l++
-			}
-			break Tag
-		case sNotFound:
-			i++
-			for i < len(s) && s[i] != '"' {
-				i++
-			}
-			status = sStart
+	for i, s := range name {
+		if s == ',' {
+			return name[0:i]
 		}
 	}
-	return s[start : start+l]
+	return name
 }

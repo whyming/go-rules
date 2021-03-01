@@ -166,7 +166,7 @@ func Test_getValue(t *testing.T) {
 			args: args{
 				base: reflect.ValueOf(More{Xy: Xy{X: 10, Abc: Abc{A: 8, B: 20}, Y: []int64{3, 6, 9}}}),
 				expr: func() ast.Expr {
-					expr, _ := parser.ParseExpr(`in(xy.y,6.0)`)
+					expr, _ := parser.ParseExpr(`in(xy.y,6)`)
 					return expr
 				}(),
 			},
@@ -176,7 +176,7 @@ func Test_getValue(t *testing.T) {
 			args: args{
 				base: reflect.ValueOf(More{Xy: Xy{X: 10, Abc: Abc{A: 8, B: 20}, Y: []int64{3, 6, 9}}}),
 				expr: func() ast.Expr {
-					expr, _ := parser.ParseExpr(`in(xy.y,5.0)`)
+					expr, _ := parser.ParseExpr(`in(xy.y,5)`)
 					return expr
 				}(),
 			},
@@ -367,6 +367,12 @@ func Test_getTagName(t *testing.T) {
 				s: `kk:"adfa" json:"abc,omitempty"`,
 			},
 			want: "abc",
+		}, {
+			name: "no tag",
+			args: args{
+				s: ``,
+			},
+			want: "",
 		},
 	}
 	for _, tt := range tests {
